@@ -1,5 +1,7 @@
 import 'package:firebase_auth/firebase_auth.dart';
+import 'package:cloud_firestore/cloud_firestore.dart';
 import 'package:flutter/material.dart';
+import 'Object/app_user.dart';
 
 class SignUpPage extends StatefulWidget {
   const SignUpPage({super.key});
@@ -21,6 +23,25 @@ class _SignUpPageState extends State<SignUpPage> {
   String errorMessage = "";
   bool isEmailFormatError = false;
   bool isExistingEmail = false;
+
+  AppUser createAppUser({required String email, required String fullName, required String shippingAddress, loyaltyPoints}) {
+    return AppUser(
+      email: email,
+      fullName: fullName, 
+      shippingAddress: shippingAddress
+    );
+  }
+
+  Future<void> saveUserInformation({required AppUser user}) async {
+    final userDoc = FirebaseFirestore.instance.collection("Users").doc(user.email);
+
+    await userDoc.set({
+      'email' : user.email,
+      'fullName' : user.fullName,
+      'shippingAddress' : user.shippingAddress,
+      'loyaltyPoints' : user.loyaltyPoints
+    });
+  }
 
   void showSignUpFailureSnackBar(BuildContext context, {String errorMessage = 'Failed to create account'}) {
     final size = MediaQuery.of(context).size;
@@ -343,6 +364,14 @@ class _SignUpPageState extends State<SignUpPage> {
                   if(!mounted) return;
                   if(isSuccess) {
                     showSuccessSnackBar(context);
+                    AppUser user = createAppUser(
+                      email: controllers["Email"]!.text,
+                      fullName: controllers["Name"]!.text,
+                      shippingAddress: controllers["Address"]!.text
+                    );
+                    // Save user information to firebase
+                    await saveUserInformation(user: user);
+
                     setState(() {
                       controllers["Email"]!.text = "";
                       controllers["Address"]!.text = "";

@@ -1,12 +1,100 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_auth/firebase_auth.dart';
 
-class LoginPage extends StatelessWidget {
+class LoginPage extends StatefulWidget {
   LoginPage({super.key});
+
+  @override
+  State<LoginPage> createState() => _LoginPageState();
+}
+
+class _LoginPageState extends State<LoginPage> {
   final Map<String, TextEditingController> controllers = {
     "Email" : TextEditingController(),
     "Password" : TextEditingController()
   };
+
+  final auth = FirebaseAuth.instance;
+
+  String errorMessage = "";
+
+  bool obscureText = true;
+
+  void showSignUpFailureSnackBar(BuildContext context, {String errorMessage = 'Failed to create account'}) {
+    final size = MediaQuery.of(context).size;
+    final verticalRatio = size.height/874;
+    final horizontalRatio = size.width/402;
+    ScaffoldMessenger.of(context).showSnackBar(
+      SnackBar(
+        content: Row(
+          children: [
+            Icon(Icons.error_outline, color: Colors.white),
+            SizedBox(width: 12*horizontalRatio),
+            Expanded(
+              child: Column(
+                crossAxisAlignment: CrossAxisAlignment.start,
+                mainAxisSize: MainAxisSize.min,
+                children: [
+                  Text(
+                    'Sign-up Failed',
+                    style: TextStyle(
+                      fontWeight: FontWeight.bold,
+                      fontSize: 16*verticalRatio,
+                    ),
+                  ),
+                  SizedBox(height: 4*verticalRatio),
+                  Text(
+                    errorMessage,
+                    style: TextStyle(fontSize: 14*verticalRatio),
+                  ),
+                ],
+              ),
+            ),
+          ],
+        ),
+        backgroundColor: Colors.red.shade700,
+        duration: Duration(seconds: 5),
+        behavior: SnackBarBehavior.floating,
+        shape: RoundedRectangleBorder(
+          borderRadius: BorderRadius.circular(10),
+        ),
+        margin: EdgeInsets.symmetric(horizontal: 12*horizontalRatio, vertical: 12*verticalRatio),
+        action: SnackBarAction(
+          label: 'TRY AGAIN',
+          textColor: Colors.white,
+          onPressed: () {
+            // Logic to retry or focus on the form
+            // You could also dismiss the SnackBar here if needed
+          },
+        ),
+      ),
+    );
+  }
+
+  Future<User?> signIn(String email, String password) async {
+    try {
+      final result = await auth.signInWithEmailAndPassword(email: email, password: password);
+      return result.user;
+    }
+    on FirebaseAuthException catch(e) {
+      if(e.code == 'user-not-found'
+      || e.code == 'wrong-password'
+      || e.code == 'invalid-email') {
+        errorMessage = "Email or Password is wrong";
+      }
+      else if(e.code == 'user-disabled') {
+        errorMessage = "Your account are banned by admin";
+      }
+      else {
+        errorMessage = "Cannot login. Something went wrong !";
+        print(e.message);
+      }
+      return null;
+    } 
+    catch(e) {
+      return null;
+    }
+  }
 
   @override
   Widget build(BuildContext context) {
@@ -73,13 +161,24 @@ class LoginPage extends StatelessWidget {
             child: TextFormField(
               controller: controllers["Password"],
               cursorColor: Color.fromARGB(255, 62, 85, 97),
+              obscureText: obscureText,
               decoration: InputDecoration(
                   icon: Icon(Icons.lock,color: Color.fromARGB(255, 62, 85, 97)),
                   hintText: "Password",
                   hintStyle: TextStyle(
                     color: Color.fromARGB(255, 62, 85, 97),
                   ),
+                  suffixIcon: IconButton(
+                    onPressed: () {
+                      setState(() {
+                        obscureText = !obscureText;
+                      });
+
+                    },
+                    icon: Icon(obscureText ? Icons.visibility_off : Icons.visibility)
+                  ),
                   border: InputBorder.none,
+                  contentPadding: const EdgeInsets.symmetric(vertical: 12),
                 ),
                 style: TextStyle(
                   fontWeight: FontWeight.bold,
@@ -115,14 +214,13 @@ class LoginPage extends StatelessWidget {
               style: ElevatedButton.styleFrom(
                 backgroundColor: Color.fromARGB(255, 62, 85, 97),
               ),
-              onPressed: () {
-                final user = FirebaseAuth.instance.currentUser;
-
-                if (user != null) {
-                  print('UID: ${user.uid}');
-                  print('Email: ${user.email}');
-                  print('Created: ${user.metadata.creationTime}');
-                  print('Last sign-in: ${user.metadata.lastSignInTime}');
+              onPressed: () async {
+                final user = await signIn(controllers["Email"]!.text, controllers["Password"]!.text);
+                if(user == null) {
+                  showSignUpFailureSnackBar(context, errorMessage: errorMessage);
+                }
+                else {
+                  Navigator.pushNamed(context, "/home");
                 }
               },
               child: Padding(

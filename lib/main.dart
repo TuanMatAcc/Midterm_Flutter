@@ -1,5 +1,6 @@
 import 'package:flutter/material.dart';
 import 'package:firebase_core/firebase_core.dart';
+import 'firebase_options.dart';
 import 'package:midterm/auth_gate.dart';
 import 'package:midterm/home_page.dart';
 import 'package:midterm/login_page.dart';
@@ -19,7 +20,7 @@ class MyApp extends StatelessWidget {
     return MaterialApp(
       debugShowCheckedModeBanner: false,
       title: "TechThink",
-      initialRoute: "/login",
+      initialRoute: "/",
       routes: {
         "/" : (context) => AuthGate(),
         "/login" : (context) => LoginPage(),

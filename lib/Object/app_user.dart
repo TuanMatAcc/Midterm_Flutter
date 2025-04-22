@@ -8,7 +8,7 @@ class AppUser {
     required this.email,
     required this.fullName,
     required this.shippingAddress,
-    loyaltyPoints,
+    loyaltyPoints = 0,
   }) {
     if(fullName.isEmpty) {
       throw ArgumentError("Full name must not be blank");
