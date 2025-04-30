@@ -38,8 +38,14 @@ class HomePage extends StatelessWidget {
     
     return Scaffold(
       appBar: AppBar(
-        title: Text("Home Page", style: TextStyle(color: Colors.white),),
-        backgroundColor: Colors.blue,
+        title: Text(
+          "Home Page",
+          style: TextStyle(
+            color: Colors.white,
+            fontFamily: 'Outfit'
+          ),
+        ),
+        backgroundColor: Color.fromARGB(255, 62, 85, 97),
         automaticallyImplyLeading: false,
       ),
       body: FutureBuilder<AppUser?>(
@@ -49,7 +55,14 @@ class HomePage extends StatelessWidget {
             return const Center(child: CircularProgressIndicator());
           }
           if(!snapshot.hasData) {
-            return const Center(child: Text("No user data found"),);
+            return const Center(
+              child: Text(
+                "No user data found",
+                style: TextStyle(
+                  fontFamily: 'Outfit'
+                ),
+              ),
+            );
           }
 
           final appUser = snapshot.data;
@@ -61,16 +74,26 @@ class HomePage extends StatelessWidget {
               "loyaltyPoints" : appUser.loyaltyPoints,
               "shippingAddress" : appUser.shippingAddress,
             };
-            print(userMap["fullName"]);
             return FutureBuilder(
               future: callHelloUser(user: userMap),
               builder: (context, snapshot) => Center(
-                child: Text(snapshot.data ?? "Who Are You ?", style: TextStyle(fontSize: 30),),
+                child: Text(
+                  "${snapshot.data} The hello phrase is returned from cloud function !" ?? "Who Are You ?",
+                  style: TextStyle(
+                    fontSize: 30,
+                    fontFamily: 'Outfit'
+                  ),
+                ),
               ),
             );
           } 
           return Center(
-            child: Text("This is my bug ! Not your fault"),
+            child: Text(
+              "This is my bug ! Not your fault",
+              style: TextStyle(
+                fontFamily: 'Outfit'
+              ),
+            ),
           );
         }
       ),
